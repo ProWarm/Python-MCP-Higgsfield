@@ -146,6 +146,6 @@ def _extract_url(result: dict, kind: str) -> Optional[str]:
 # ── Entry point ───────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
-    asgi_app = mcp.http_app()          # FastMCP → Starlette/ASGI
+    asgi_app = mcp.http_app(transport="sse")          # FastMCP → Starlette/ASGI
     protected  = BearerAuth(asgi_app)  # обёртка с проверкой токена
     uvicorn.run(protected, host="0.0.0.0", port=port)
