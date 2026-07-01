@@ -1,0 +1,4 @@
+fastmcp>=2.0.0
+higgsfield-client
+uvicorn[standard]
+starlette
