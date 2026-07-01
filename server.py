@@ -143,9 +143,30 @@ def _extract_url(result: dict, kind: str) -> Optional[str]:
     )
 
 
+
 # ── Entry point ───────────────────────────────────────────────────────────────
 if __name__ == "__main__":
+    import uvicorn
+
     port = int(os.environ.get("PORT", 8080))
-    asgi_app = mcp.http_app(transport="sse")          # FastMCP → Starlette/ASGI
-    protected  = BearerAuth(asgi_app)  # обёртка с проверкой токена
-    uvicorn.run(protected, host="0.0.0.0", port=port)
+
+    # Получаем ASGI-приложение с SSE-транспортом
+    app = mcp.http_app(transport="sse")
+
+    # Добавляем auth поверх
+    app = BearerAuth(app)
+
+    # Добавляем health-check эндпоинт на / чтобы Railway не ругался
+    from starlette.applications import Starlette
+    from starlette.routing import Route, Mount
+    from starlette.responses import PlainTextResponse
+
+    def health(request):
+        return PlainTextResponse("ok")
+
+    root = Starlette(routes=[
+        Route("/", health),
+        Mount("/", app=app),
+    ])
+
+    uvicorn.run(root, host="0.0.0.0", port=port)
